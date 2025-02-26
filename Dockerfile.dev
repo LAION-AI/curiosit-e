@@ -1,0 +1,17 @@
+FROM denoland/deno:1.41.3
+
+WORKDIR /app
+
+# Copy all necessary files first
+COPY . .
+
+# Pre-cache dependencies - with fallback attempts if network issues occur
+RUN deno cache --reload main.ts || \
+    (sleep 2 && deno cache --reload main.ts) || \
+    (sleep 5 && deno cache --reload main.ts)
+
+# Expose port
+EXPOSE 8000
+
+# Command will be overridden by docker-compose
+CMD ["run", "-A", "--watch", "dev.ts"] 

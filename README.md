@@ -50,10 +50,18 @@ School Bud-E is an intelligent and empathetic learning assistant designed to rev
 
 3. Run the development server:
 
+   **Option 1: Using Deno directly**
    ```bash
    cd school-bud-e-frontend
    deno task start
    ```
+
+   **Option 2: Using Docker with hot reloading**
+   ```bash
+   cd school-bud-e-frontend
+   ./dev.sh
+   ```
+   This will start the development environment with hot reloading, allowing you to see your changes immediately without restarting the server.
 
 4. Open `http://localhost:8000` in your browser
 
@@ -68,6 +76,7 @@ School Bud-E is an intelligent and empathetic learning assistant designed to rev
 
 2. With docker
 
+   **Option 1: Using docker-compose directly**
    ```bash
    git clone https://github.com/LAION-AI/school-bud-e-frontend.git
    cd school-bud-e-frontend
@@ -76,7 +85,36 @@ School Bud-E is an intelligent and empathetic learning assistant designed to rev
    docker-compose up
    ```
 
+   **Option 2: Using the production script**
+   ```bash
+   cd school-bud-e-frontend
+   ./prod.sh
+   ```
+
 Then log into localhost:8000 in your browser.
+
+## 🔄 Development Workflow
+
+### Hot Reloading
+
+When using the Docker development environment (`./dev.sh`), the application supports hot reloading for:
+- Routes
+- Islands (interactive components)
+- Components
+- Utility functions
+- Internationalization files
+
+This means you can edit these files and see your changes immediately without restarting the server.
+
+### Development vs Production
+
+- **Development**: Uses `docker-compose.dev.yml` with volume mounts for hot reloading
+- **Production**: Uses `docker-compose.yml` with optimized builds for performance
+
+### Switching Between Environments
+
+- To start development: `./dev.sh`
+- To start production: `./prod.sh`
 
 ## Interaction Between API Routes and Chat Components
 

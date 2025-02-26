@@ -2,17 +2,17 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "8000:8000"
     volumes:
-      - ./static:/app/static:ro
-      - ./static/articles:/app/static/articles:ro
-      - ./routes:/app/routes:ro
-      - ./islands:/app/islands:ro
-      - ./components:/app/components:ro
-      - ./utils:/app/utils:ro
-      - ./internalization:/app/internalization:ro
+      - ./static:/app/static
+      - ./routes:/app/routes
+      - ./islands:/app/islands
+      - ./components:/app/components
+      - ./utils:/app/utils
+      - ./internalization:/app/internalization
+      - ./deno.json:/app/deno.json
     environment:
       - PORT=8000
       - ARTICLES_SERVER_URL=http://articles-server:3003
@@ -27,7 +27,7 @@ services:
     ports:
       - "3003:3003"
     volumes:
-      - ./static/articles:/app/static/articles:ro
+      - ./static/articles:/app/static/articles
     environment:
       - STATIC_DIR=/app/static/articles
     restart: unless-stopped

@@ -12,11 +12,11 @@ export default function LogoHeader({ lang }: { lang: string }) {
         <div className="flex items-center space-x-3 drop-shadow-sm">
             {/* Logo Image */}
             <img
-                src="/logo.png"
-                width="48"
-                height="48"
+                src="/logo-curiosit-e.png"
+                width="60"
+                height="60"
                 alt="Curiosit-e Logo"
-                className="rounded-md"
+                className="rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700"
             />
 
             <div className="flex flex-col">
@@ -26,7 +26,7 @@ export default function LogoHeader({ lang }: { lang: string }) {
                 </h2>
 
                 {/* Main Title */}
-                <h1 className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 font-bold pixelify-sans">
+                <h1 className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 font-bold font-serif">
                     {headerContent[safeLanguage].title}
                 </h1>
             </div>
