@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./static:/app/static:ro
+      - ./static/articles:/app/static/articles:ro
+    environment:
+      - PORT=8000
+      - ARTICLES_SERVER_URL=http://articles-server:3003
+    restart: unless-stopped
+    
+  articles-server:
+    build:
+      context: ./go-cluster-server
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./static/articles:/app/static/articles:ro
+    environment:
+      - STATIC_DIR=/app/static/articles
+    restart: unless-stopped
+
+volumes:
+  article-data: 
