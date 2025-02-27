@@ -2,10 +2,10 @@
 import type { PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/src/runtime/head.ts";
 import { Partial } from "$fresh/runtime.ts";
-import RelatedArticles from "../../islands/RelatedArticles.tsx";
+import ArticlesList from "../../islands/ArticlesList.tsx";
 import Header from "../../components/Header.tsx";
 
-type Article = {
+export type Article = {
 	title: string;
 	path: string;
 	img: string;
@@ -14,7 +14,7 @@ type Article = {
 // Cache for related articles to reduce API calls
 const articlesCache = new Map<string, Article[]>();
 
-const useRelatedArticles = async (title = "Time Management"): Promise<Article[]> => {
+export const useRelatedArticles = async (title = "Time Management"): Promise<Article[]> => {
 	// Check cache first
 	const cacheKey = title.toLowerCase();
 	if (articlesCache.has(cacheKey)) {
@@ -26,7 +26,7 @@ const useRelatedArticles = async (title = "Time Management"): Promise<Article[]>
 		// Use environment variable with fallback to localhost
 		const articlesServerUrl = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:3003";
 		const res = await fetch(
-			`${articlesServerUrl}/related-files?title=${urlencoded}`,
+			`${articlesServerUrl}/related?title=${urlencoded}`,
 		);
 		
 		if (!res.ok) {
@@ -62,13 +62,13 @@ const useRelatedArticles = async (title = "Time Management"): Promise<Article[]>
 export default async function Articles(props: PageProps) {
 	// Safely get the lang parameter with a fallback to "en"
 	const lang = props?.url?.searchParams?.get("lang") || "en";
-	const articles = await useRelatedArticles();
+	const initialArticles = await useRelatedArticles();
 
 	return (
 		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 			<Head>
-				<title>Curiosit-e Articles</title>
-				<meta name="description" content="Browse educational articles" />
+				<title>Articles | Curiosit-e</title>
+				<meta name="description" content="Browse our collection of educational articles" />
 				<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet" />
 			</Head>
 
@@ -77,19 +77,15 @@ export default async function Articles(props: PageProps) {
 			<main className="container mx-auto px-4 py-8 md:py-12">
 				<div className="max-w-4xl mx-auto mb-10 text-center">
 					<h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white font-serif">
-						Educational Articles
+						All Articles
 					</h1>
 					<p className="text-lg text-gray-600 dark:text-gray-300">
-						Explore our collection of educational resources to enhance your learning journey
+						Browse our complete collection of educational articles
 					</p>
 				</div>
 
 				<div className="max-w-6xl mx-auto">
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-						<Partial name="articles">
-							<RelatedArticles relatedArticles={articles} count={9} />
-						</Partial>
-					</div>
+					<ArticlesList initialArticles={initialArticles} />
 				</div>
 			</main>
 
@@ -100,11 +96,11 @@ export default async function Articles(props: PageProps) {
 							<p className="text-gray-600 dark:text-gray-300">&copy; {new Date().getFullYear()} Curiosit-e. All rights reserved.</p>
 						</div>
 						<div className="flex space-x-4">
-							<a href="/articles" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-								Articles
-							</a>
 							<a href="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
 								Home
+							</a>
+							<a href="/articles" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+								Articles
 							</a>
 						</div>
 					</div>

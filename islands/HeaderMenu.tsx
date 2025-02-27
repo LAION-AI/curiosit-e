@@ -36,18 +36,18 @@ export default function HeaderMenu({ lang = "en" }: { lang?: string }) {
         <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray-800 py-2 px-4 mt-1 shadow-lg">
           <nav className="flex flex-col space-y-3">
             <a 
-              href="/articles" 
-              className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Articles
-            </a>
-            <a 
               href="/" 
               className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Home
+            </a>
+            <a 
+              href="/articles" 
+              className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Articles
             </a>
           </nav>
         </div>

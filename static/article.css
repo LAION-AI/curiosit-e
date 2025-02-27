@@ -356,25 +356,27 @@ header {
     color: #cbd5e0;
 }
 
-.article-content a {
+/* Markdown link styling */
+.article-content a, .article-content .markdown-link {
     color: #3182ce;
     text-decoration: none;
     border-bottom: 1px solid #bee3f8;
     transition: border-color 0.2s ease, color 0.2s ease;
     font-weight: 500;
+    padding-bottom: 1px;
 }
 
-.article-content a:hover {
+.article-content a:hover, .article-content .markdown-link:hover {
     border-bottom-color: #3182ce;
     color: #2b6cb0;
 }
 
-.dark .article-content a {
+.dark .article-content a, .dark .article-content .markdown-link {
     color: #90cdf4;
     border-bottom-color: #2c5282;
 }
 
-.dark .article-content a:hover {
+.dark .article-content a:hover, .dark .article-content .markdown-link:hover {
     border-bottom-color: #90cdf4;
     color: #63b3ed;
 }
@@ -571,5 +573,124 @@ header {
     .article-content blockquote {
         padding: 1rem 1.25rem;
         font-size: 1.125rem;
+    }
+}
+
+/* Quiz input styling */
+.quiz-input {
+    border: none;
+    border-bottom: 2px solid #3182ce;
+    background-color: transparent;
+    padding: 4px 8px;
+    margin: 0 4px;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.quiz-input:focus {
+    border-bottom-color: #2b6cb0;
+}
+
+.dark .quiz-input {
+    border-bottom-color: #4299e1;
+    color: #e2e8f0;
+}
+
+.dark .quiz-input:focus {
+    border-bottom-color: #63b3ed;
+}
+
+/* Collapsible quotes styling */
+.collapsible-quote {
+    margin: 1.75rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #f7fafc;
+    border-left: 4px solid #4299e1;
+}
+
+.dark .collapsible-quote {
+    background-color: #2d3748;
+    border-left-color: #4299e1;
+}
+
+.collapsible-quote summary {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: #4a5568;
+    user-select: none;
+    outline: none;
+    transition: background-color 0.2s ease;
+}
+
+.dark .collapsible-quote summary {
+    color: #e2e8f0;
+}
+
+.collapsible-quote summary:hover {
+    background-color: #edf2f7;
+}
+
+.dark .collapsible-quote summary:hover {
+    background-color: #2c3748;
+}
+
+.collapsible-quote blockquote {
+    margin: 0;
+    padding: 1.25rem 1.75rem;
+    font-style: italic;
+    font-size: 1.25rem;
+    border-left: none !important;
+    background-color: transparent !important;
+}
+
+/* Jump to top button styling */
+.jump-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #3182ce;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.jump-to-top.visible {
+    display: flex;
+}
+
+.jump-to-top:hover {
+    background-color: #2b6cb0;
+    transform: translateY(-3px);
+}
+
+.dark .jump-to-top {
+    background-color: #4299e1;
+    color: #1a202c;
+}
+
+.dark .jump-to-top:hover {
+    background-color: #63b3ed;
+}
+
+@media screen and (max-width: 768px) {
+    .jump-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
     }
 }

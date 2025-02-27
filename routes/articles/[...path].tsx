@@ -26,6 +26,65 @@ function extractTitle(path: string): string {
         .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+// Helper function to find the actual file path
+async function findArticleFile(articlePath: string): Promise<string | null> {
+    // Handle paths with single quotes by replacing them with escaped versions
+    const sanitizedPath = articlePath.replace(/'/g, "\\'");
+    
+    // First try the direct path
+    const directPath = `${join(staticDir, sanitizedPath)}.html`;
+    try {
+        await Deno.stat(directPath);
+        return directPath;
+    } catch (e) {
+        if (!(e instanceof Deno.errors.NotFound)) {
+            console.error("Error checking direct path:", e);
+        }
+    }
+    
+    // If not found, search in subdirectories
+    try {
+        const searchDirs = [];
+        for await (const entry of Deno.readDir(staticDir)) {
+            if (entry.isDirectory && entry.name.startsWith('search_results_')) {
+                searchDirs.push(entry.name);
+            }
+        }
+        
+        // Try each search directory
+        for (const dir of searchDirs) {
+            const searchPath = `${join(staticDir, dir, sanitizedPath)}.html`;
+            try {
+                await Deno.stat(searchPath);
+                return searchPath;
+            } catch (e) {
+                if (!(e instanceof Deno.errors.NotFound)) {
+                    console.error(`Error checking path in ${dir}:`, e);
+                }
+            }
+        }
+        
+        // If still not found, try with unescaped single quotes
+        if (sanitizedPath !== articlePath) {
+            for (const dir of searchDirs) {
+                const searchPath = `${join(staticDir, dir, articlePath)}.html`;
+                try {
+                    await Deno.stat(searchPath);
+                    return searchPath;
+                } catch (e) {
+                    if (!(e instanceof Deno.errors.NotFound)) {
+                        console.error(`Error checking unescaped path in ${dir}:`, e);
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error searching for article:", e);
+    }
+    
+    return null;
+}
+
 // Process HTML content for articles
 function processArticleContent(htmlContent: string): string {
     // Remove inline styles for cleaner output
@@ -49,20 +108,71 @@ function processArticleContent(htmlContent: string): string {
     for (let i = 0; i < parts.length; i++) {
         // If this is a text node (not inside an HTML tag), process markdown links
         if (i % 2 === 0) {
-            parts[i] = parts[i].replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+            // Handle markdown links with more complex text content
+            // This regex handles links with text that might contain formatting but not other links
+            parts[i] = parts[i].replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+                // Ensure URL is properly formatted
+                const formattedUrl = url.trim();
+                // Return the HTML link
+                return `<a href="${formattedUrl}" class="markdown-link">${text}</a>`;
+            });
+            
+            // Convert placeholder quiz text (more than two consecutive underscores) to input fields
+            parts[i] = parts[i].replace(/_{3,}/g, (match) => {
+                const width = Math.min(Math.max(match.length * 8, 60), 200);
+                return `<input type="text" class="quiz-input" style="width: ${width}px; display: inline-block;" />`;
+            });
         }
         result += parts[i];
     }
+    
+    // Make blockquotes collapsible
+    result = result.replace(/<blockquote>([\s\S]*?)<\/blockquote>/g, 
+        '<details class="collapsible-quote"><summary>Quote</summary><blockquote>$1</blockquote></details>');
+    
+    // Add jump to top button
+    result += `
+    <button id="jumpToTopBtn" class="jump-to-top" title="Go to top">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+        </svg>
+    </button>
+    <script>
+        // Jump to top button functionality
+        const jumpToTopBtn = document.getElementById('jumpToTopBtn');
+        
+        // Show button when user scrolls down 300px
+        window.onscroll = function() {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                jumpToTopBtn.classList.add('visible');
+            } else {
+                jumpToTopBtn.classList.remove('visible');
+            }
+        };
+        
+        // Scroll to top when button is clicked
+        jumpToTopBtn.addEventListener('click', function() {
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        });
+    </script>
+    `;
     
     return result;
 }
 
 export default async function ArticlePage(_req: Request, { params }: { params: { path: string } }) {
-    const filepath = `${join(staticDir, params.path)}.html`;
     const lang = new URL(_req.url).searchParams.get("lang") || "en";
     const articleTitle = extractTitle(params.path);
     
     try {
+        // Find the actual file path
+        const filepath = await findArticleFile(params.path);
+        
+        if (!filepath) {
+            return new Response("Article not found", { status: 404 });
+        }
+        
         // Read and process the article content
         let content: string;
         
@@ -94,6 +204,7 @@ export default async function ArticlePage(_req: Request, { params }: { params: {
                     <title>{articleTitle} | Curiosit-e</title>
                     <meta name="description" content={`Educational article about ${articleTitle}`} />
                     <link rel="stylesheet" href="/styles.css" />
+                    <link rel="stylesheet" href="/article.css" />
                 </Head>
                 
                 <Header lang={lang} />
@@ -128,7 +239,7 @@ export default async function ArticlePage(_req: Request, { params }: { params: {
         );
     } catch (e) {
         if (e instanceof Deno.errors.NotFound) {
-            return new Response("Not found", { status: 404 });
+            return new Response("Article not found", { status: 404 });
         }
         console.error("Error serving file:", e);
         return new Response("Internal server error", { status: 500 });

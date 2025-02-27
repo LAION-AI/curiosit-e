@@ -6,18 +6,16 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./static:/app/static:ro
-      - ./static/articles:/app/static/articles:ro
-      - ./routes:/app/routes:ro
-      - ./islands:/app/islands:ro
-      - ./components:/app/components:ro
-      - ./utils:/app/utils:ro
-      - ./internalization:/app/internalization:ro
+      - ./static:/app/static
+      - article-data:/app/static/articles
     environment:
       - PORT=8000
-      - ARTICLES_SERVER_URL=http://articles-server:3003
-      - DENO_ENV=development
+      - ARTICLES_SERVER_URL=http://articles-server:8081
+      - GO_SERVER_URL=http://articles-server:8081
+      - DENO_ENV=production
     restart: unless-stopped
+    depends_on:
+      - articles-server
     command: run -A --watch=routes/,islands/,components/,utils/,internalization/ dev.ts
     
   articles-server:
@@ -25,11 +23,12 @@ services:
       context: ./go-cluster-server
       dockerfile: Dockerfile
     ports:
-      - "3003:3003"
+      - "8081:8081"
     volumes:
-      - ./static/articles:/app/static/articles:ro
+      - article-data:/app/static/articles
     environment:
       - STATIC_DIR=/app/static/articles
+      - PORT=8081
     restart: unless-stopped
 
 volumes:

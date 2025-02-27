@@ -15,7 +15,8 @@ services:
       - ./deno.json:/app/deno.json
     environment:
       - PORT=8000
-      - ARTICLES_SERVER_URL=http://articles-server:3003
+      - ARTICLES_SERVER_URL=http://articles-server:8081
+      - GO_SERVER_URL=http://articles-server:8081
       - DENO_ENV=development
     restart: unless-stopped
     command: run -A --watch=routes/,islands/,components/,utils/,internalization/ dev.ts
@@ -25,11 +26,12 @@ services:
       context: ./go-cluster-server
       dockerfile: Dockerfile
     ports:
-      - "3003:3003"
+      - "8081:8081"
     volumes:
       - ./static/articles:/app/static/articles
     environment:
       - STATIC_DIR=/app/static/articles
+      - PORT=8081
     restart: unless-stopped
 
 volumes:

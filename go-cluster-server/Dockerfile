@@ -2,12 +2,10 @@ FROM golang:1.22-alpine
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
-
 COPY . .
-RUN go build -o articles-server .
 
-EXPOSE 3003
+RUN go build -o main .
 
-CMD ["./articles-server"] 
+EXPOSE 8081
+
+CMD ["./main"] 
