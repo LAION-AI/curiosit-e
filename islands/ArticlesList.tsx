@@ -12,37 +12,79 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [usedTitles, setUsedTitles] = useState<Set<string>>(new Set(["Time Management"]));
   const loaderRef = useRef<HTMLDivElement>(null);
   const articlesPerPage = 9;
+  const maxRetries = 3;
+  const [retryCount, setRetryCount] = useState(0);
+
+  // A wider variety of search terms to get more diverse articles
+  const searchTerms = [
+    "Management", "Science", "History", "Mathematics", "Literature", "Technology",
+    "Biology", "Physics", "Chemistry", "Art", "Music", "Philosophy", 
+    "Psychology", "Sociology", "Economics", "Geography", "Politics", "Religion",
+    "Computer", "Internet", "Data", "Analysis", "Research", "Education",
+    "Health", "Medicine", "Environment", "Climate", "Energy", "Space"
+  ];
 
   // Function to fetch more articles
   const fetchMoreArticles = useCallback(async () => {
-    if (!IS_BROWSER || isLoading || !hasMore) return;
+    if (!IS_BROWSER || isLoading || (!hasMore && retryCount >= maxRetries)) return;
     
     setIsLoading(true);
     try {
-      // Use a different title for each page to get different articles
-      const titles = ["Management", "Science", "History", "Mathematics", "Literature", "Technology"];
-      const titleIndex = page % titles.length;
+      // Get a title we haven't used yet
+      let titleIndex = page % searchTerms.length;
+      let searchTitle = searchTerms[titleIndex];
+      
+      // Try to find a title we haven't used yet
+      let attempts = 0;
+      while (usedTitles.has(searchTitle) && attempts < searchTerms.length) {
+        titleIndex = (titleIndex + 1) % searchTerms.length;
+        searchTitle = searchTerms[titleIndex];
+        attempts++;
+      }
+      
+      // If we've used all titles, just use the current one
+      if (usedTitles.has(searchTitle) && usedTitles.size >= searchTerms.length) {
+        // We've used all titles, so we'll reuse one but with a different page parameter
+        searchTitle = searchTerms[Math.floor(Math.random() * searchTerms.length)];
+      }
+      
+      // Add this title to the used titles set
+      setUsedTitles(prev => new Set([...prev, searchTitle]));
       
       const articlesServerUrl = window.location.origin.includes("localhost") 
         ? "http://localhost:8081" 
         : window.location.origin.replace(":8000", ":8081");
       
+      console.log(`Fetching more articles with title: ${searchTitle}, page: ${page}`);
+      
       const res = await fetch(
-        `${articlesServerUrl}/related?title=${titles[titleIndex]}&page=${page}`
+        `${articlesServerUrl}/related?title=${encodeURIComponent(searchTitle)}&page=${page}`
       );
       
       if (!res.ok) {
         console.error(`Error fetching more articles: ${res.status}`);
-        setHasMore(false);
+        if (retryCount < maxRetries) {
+          setRetryCount(prev => prev + 1);
+          setPage(prev => prev + 1);
+        } else {
+          setHasMore(false);
+        }
         return;
       }
       
       const data = await res.json();
       
-      if (data.length === 0) {
-        setHasMore(false);
+      if (!data || data.length === 0) {
+        console.log("No more articles found for this search term");
+        if (retryCount < maxRetries) {
+          setRetryCount(prev => prev + 1);
+          setPage(prev => prev + 1);
+        } else {
+          setHasMore(false);
+        }
         return;
       }
       
@@ -60,27 +102,39 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
         return { title, path, img: article.img };
       });
       
-      // Filter out duplicates
+      // Filter out duplicates by path
+      const existingPaths = new Set(articles.map(article => article.path));
       const uniqueNewArticles = newArticles.filter(
-        (newArticle: Article) => !articles.some(
-          (existingArticle) => existingArticle.path === newArticle.path
-        )
+        (newArticle: Article) => !existingPaths.has(newArticle.path)
       );
       
       if (uniqueNewArticles.length === 0) {
-        setHasMore(false);
+        console.log("No unique new articles found");
+        if (retryCount < maxRetries) {
+          setRetryCount(prev => prev + 1);
+          setPage(prev => prev + 1);
+        } else {
+          setHasMore(false);
+        }
         return;
       }
       
+      // Reset retry count since we found articles
+      setRetryCount(0);
       setArticles((prevArticles) => [...prevArticles, ...uniqueNewArticles]);
       setPage((prevPage) => prevPage + 1);
     } catch (error) {
       console.error("Error fetching more articles:", error);
-      setHasMore(false);
+      if (retryCount < maxRetries) {
+        setRetryCount(prev => prev + 1);
+        setPage(prev => prev + 1);
+      } else {
+        setHasMore(false);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, hasMore, page, articles]);
+  }, [isLoading, hasMore, page, articles, usedTitles, retryCount]);
 
   // Set up intersection observer for infinite scrolling
   useEffect(() => {

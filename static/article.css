@@ -16,8 +16,175 @@
     font-display: swap;
 }
 
-/* Base typography */
-h1 {
+/* Reading Progress Bar */
+.reading-progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: transparent;
+    z-index: 1001;
+    pointer-events: none;
+}
+
+.reading-progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, #3182ce, #63b3ed);
+    width: 0%;
+    transition: width 0.2s ease;
+    box-shadow: 0 0 10px rgba(49, 130, 206, 0.5);
+}
+
+.dark .reading-progress-bar {
+    background: linear-gradient(to right, #4299e1, #90cdf4);
+    box-shadow: 0 0 10px rgba(66, 153, 225, 0.5);
+}
+
+/* Modern Custom Audio Player Styling */
+.custom-audio-player {
+    width: 100%;
+    max-width: 600px;
+    margin: 2rem auto;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 
+                0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .custom-audio-player {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2), 
+                0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(74, 85, 104, 0.3);
+}
+
+.custom-audio-player:before {
+    content: "▶ Audio Player";
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #4299e1;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 1rem;
+    border-radius: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.custom-audio-player audio {
+    width: 100%;
+    margin-top: 1.5rem;
+    outline: none;
+    border-radius: 8px;
+    background: transparent;
+}
+
+/* Customizing the audio player controls */
+.custom-audio-player audio::-webkit-media-controls-enclosure {
+    border-radius: 8px;
+    background: rgba(237, 242, 247, 0.6);
+    backdrop-filter: blur(10px);
+}
+
+.dark .custom-audio-player audio::-webkit-media-controls-enclosure {
+    background: rgba(26, 32, 44, 0.6);
+}
+
+.custom-audio-player audio::-webkit-media-controls-panel {
+    background: transparent;
+    padding: 5px;
+}
+
+.custom-audio-player audio::-webkit-media-controls-play-button {
+    background-color: #4299e1;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    position: relative;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.custom-audio-player audio::-webkit-media-controls-play-button:hover {
+    background-color: #3182ce;
+    transform: scale(1.05);
+}
+
+.custom-audio-player audio::-webkit-media-controls-timeline {
+    background-color: rgba(203, 213, 224, 0.3);
+    border-radius: 20px;
+    height: 6px;
+    margin: 0 15px;
+    transition: height 0.2s ease;
+    overflow: hidden;
+}
+
+.custom-audio-player audio::-webkit-media-controls-timeline:hover {
+    height: 8px;
+}
+
+.dark .custom-audio-player audio::-webkit-media-controls-timeline {
+    background-color: rgba(74, 85, 104, 0.5);
+}
+
+.custom-audio-player audio::-webkit-media-controls-current-time-display,
+.custom-audio-player audio::-webkit-media-controls-time-remaining-display {
+    color: #4a5568;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+}
+
+.dark .custom-audio-player audio::-webkit-media-controls-current-time-display,
+.dark .custom-audio-player audio::-webkit-media-controls-time-remaining-display {
+    color: #e2e8f0;
+}
+
+.custom-audio-player audio::-webkit-media-controls-volume-slider {
+    background-color: rgba(203, 213, 224, 0.3);
+    border-radius: 20px;
+    padding: 0 5px;
+}
+
+.dark .custom-audio-player audio::-webkit-media-controls-volume-slider {
+    background-color: rgba(74, 85, 104, 0.5);
+}
+
+/* Add a hover effect to the player */
+.custom-audio-player:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), 
+                0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dark .custom-audio-player:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 
+                0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile optimization for audio player */
+@media screen and (max-width: 600px) {
+    .custom-audio-player {
+        padding: 1.2rem;
+        margin: 1.5rem auto;
+    }
+    
+    .custom-audio-player:before {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.8rem;
+    }
+}
+
+/* Base typography - Scoped to article content */
+.article-content h1 {
     font-family: 'Lora', serif;
     color: #1a202c;
     font-size: 2.5rem;
@@ -29,273 +196,11 @@ h1 {
     padding-bottom: 0.75rem;
 }
 
-.dark h1 {
+.dark .article-content h1 {
     color: #f7fafc;
     border-bottom-color: #4a5568;
 }
 
-h2 {
-    font-family: 'Lora', serif;
-    color: #2d3748;
-    font-size: 2rem;
-    font-weight: 600;
-    line-height: 1.3;
-    margin-top: 2.5rem;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.015em;
-    border-left: 4px solid #3182ce;
-    padding-left: 1rem;
-}
-
-.dark h2 {
-    color: #e2e8f0;
-    border-left-color: #4299e1;
-}
-
-h3 {
-    font-family: 'Lora', serif;
-    color: #4a5568;
-    font-size: 1.75rem;
-    font-weight: 600;
-    line-height: 1.4;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-}
-
-.dark h3 {
-    color: #cbd5e0;
-}
-
-h4 {
-    font-family: 'Lora', serif;
-    color: #4a5568;
-    font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1.4;
-    margin-top: 1.75rem;
-    margin-bottom: 0.75rem;
-}
-
-.dark h4 {
-    color: #cbd5e0;
-}
-
-h5, h6 {
-    font-family: 'Lora', serif;
-    color: #4a5568;
-    font-size: 1.25rem;
-    font-weight: 600;
-    line-height: 1.4;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-}
-
-.dark h5, .dark h6 {
-    color: #cbd5e0;
-}
-
-/* Body text */
-html,
-body {
-    background: white;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    line-height: 1.6;
-    color: #4a5568;
-    padding: 0;
-    margin: 0;
-    max-width: 100vw !important;
-}
-
-.dark html,
-.dark body {
-    background: #1a202c;
-    color: #cbd5e0;
-}
-
-/* Content styling */
-div#content {
-    box-shadow: none;
-    grid-area: content;
-    padding: 0;
-    border-radius: 0;
-}
-
-#content > img {
-    margin-bottom: 1.5rem;
-    max-width: 100%;
-    border-radius: 0.375rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-p {
-    font-size: 1.25rem;
-    line-height: 1.8;
-    margin-bottom: 1.5rem;
-    max-width: 100%;
-    white-space: normal;
-    word-break: break-word;
-}
-
-/* List styling */
-ul, ol {
-    margin: 0 0 1.5rem 0;
-    padding-left: 2rem;
-    list-style-position: outside;
-}
-
-ul {
-    list-style-type: disc;
-}
-
-ol {
-    list-style-type: decimal;
-}
-
-li {
-    font-size: 1.25rem;
-    line-height: 1.8;
-    margin-bottom: 0.75rem;
-    padding-left: 0.5rem;
-    display: list-item;
-}
-
-/* Ensure nested lists are properly styled */
-ul ul, ol ol, ul ol, ol ul {
-    margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
-}
-
-/* Fix for markdown lists with asterisks */
-.article-content ul {
-    list-style-type: disc !important;
-    margin-left: 1rem;
-}
-
-.article-content ul li {
-    display: list-item !important;
-    list-style: disc outside !important;
-    margin-bottom: 0.5rem;
-}
-
-.article-content ol li {
-    display: list-item !important;
-    list-style: decimal outside !important;
-    margin-bottom: 0.5rem;
-}
-
-/* Ensure proper nesting for multi-level lists */
-.article-content ul ul li {
-    list-style-type: circle !important;
-}
-
-.article-content ul ul ul li {
-    list-style-type: square !important;
-}
-
-.article-content ol ol li {
-    list-style-type: lower-alpha !important;
-}
-
-.article-content ol ol ol li {
-    list-style-type: lower-roman !important;
-}
-
-/* Ensure proper spacing between list items */
-.article-content li + li {
-    margin-top: 0.25rem;
-}
-
-/* Ensure proper spacing for paragraphs inside list items */
-.article-content li p {
-    margin-bottom: 0.5rem;
-}
-
-/* Ensure proper spacing for the last paragraph in a list item */
-.article-content li p:last-child {
-    margin-bottom: 0;
-}
-
-a,
-b {
-    font-size: 1.25rem;
-    line-height: 1.8;
-}
-
-.dark p,
-.dark li,
-.dark a,
-.dark b {
-    color: #e2e8f0;
-}
-
-/* Layout */
-body > div > div {
-    display: grid;
-    grid-template-columns: 1fr minmax(auto, 900px) 1fr;
-    grid-template-areas:
-        "main main main"
-        ".. content .."
-        ".. citations .."
-        ".. footer ..";
-    max-width: unset !important;
-}
-
-/* Header */
-header {
-    grid-area: main;
-    background: white !important;
-    border-bottom: 1px solid #e2e8f0;
-    position: sticky;
-    top: 0;
-    max-width: 100vw;
-    z-index: 10;
-    margin-bottom: 2rem;
-}
-
-.dark header {
-    background: #2d3748 !important;
-    border-bottom: 1px solid #4a5568;
-}
-
-/* Footer and citations */
-.citations {
-    grid-area: citations;
-    margin-top: 2.5rem;
-    padding: 1.75rem;
-    background-color: #f7fafc;
-    border-radius: 0.5rem;
-    font-size: 1.125rem;
-}
-
-.dark .citations {
-    color: #e2e8f0;
-    background-color: #2d3748;
-}
-
-.footer {
-    grid-area: footer;
-    margin-top: 2.5rem;
-    padding-top: 1.75rem;
-    border-top: 1px solid #e2e8f0;
-    text-align: center;
-}
-
-.dark .footer {
-    color: #cbd5e0;
-    border-top-color: #4a5568;
-}
-
-/* Article content specific dark mode styles */
-.article-content {
-    color: #4a5568;
-    padding: 2rem !important;
-}
-
-.dark .article-content {
-    color: #e2e8f0;
-}
-
-/* Ensure headings in article content are properly styled */
 .article-content h2 {
     font-family: 'Lora', serif;
     color: #2d3748;
@@ -354,6 +259,317 @@ header {
 
 .dark .article-content h5, .dark .article-content h6 {
     color: #cbd5e0;
+}
+
+/* Body text */
+html,
+body {
+    background: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #4a5568;
+    padding: 0;
+    margin: 0;
+    max-width: 100vw !important;
+}
+
+.dark html,
+.dark body {
+    background: #1a202c;
+    color: #cbd5e0;
+}
+
+/* Content styling */
+div#content {
+    box-shadow: none;
+    grid-area: content;
+    padding: 0;
+    border-radius: 0;
+}
+
+#content > img {
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Fix for header component styling */
+header h1 {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+    padding: 0;
+    border: none;
+    letter-spacing: normal;
+}
+
+header h2 {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+    padding: 0;
+    border: none;
+    letter-spacing: normal;
+}
+
+/* Override for the blue stripe in the header */
+header h2.text-xs {
+    border-left: none;
+}
+
+/* Paragraph styling */
+.article-content p {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* List styling - Scoped to article content */
+.article-content ul, .article-content ol {
+    margin: 0 0 1.5rem 0;
+    padding-left: 2rem;
+    list-style-position: outside;
+}
+
+.article-content ul {
+    list-style-type: disc;
+}
+
+.article-content ol {
+    list-style-type: decimal;
+}
+
+.article-content li {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
+    display: list-item;
+}
+
+/* Ensure nested lists are properly styled */
+.article-content ul ul, .article-content ol ol, .article-content ul ol, .article-content ol ul {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Fix for markdown lists with asterisks */
+.article-content ul {
+    list-style-type: disc !important;
+    margin-left: 1rem;
+}
+
+.article-content ul li {
+    display: list-item !important;
+    list-style: disc outside !important;
+    margin-bottom: 0.5rem;
+}
+
+.article-content ol li {
+    display: list-item !important;
+    list-style: decimal outside !important;
+    margin-bottom: 0.5rem;
+}
+
+/* Ensure proper nesting for multi-level lists */
+.article-content ul ul li {
+    list-style-type: circle !important;
+}
+
+.article-content ul ul ul li {
+    list-style-type: square !important;
+}
+
+.article-content ol ol li {
+    list-style-type: lower-alpha !important;
+}
+
+.article-content ol ol ol li {
+    list-style-type: lower-roman !important;
+}
+
+/* Ensure proper spacing between list items */
+.article-content li + li {
+    margin-top: 0.25rem;
+}
+
+/* Ensure proper spacing for paragraphs inside list items */
+.article-content li p {
+    margin-bottom: 0.5rem;
+}
+
+/* Ensure proper spacing for the last paragraph in a list item */
+.article-content li p:last-child {
+    margin-bottom: 0;
+}
+
+/* Text styling for links and bold text - scoped to article content */
+.article-content a,
+.article-content b {
+    font-size: 1.25rem;
+    line-height: 1.8;
+}
+
+.dark .article-content p,
+.dark .article-content li,
+.dark .article-content a,
+.dark .article-content b {
+    color: #e2e8f0;
+}
+
+/* Layout */
+body > div > div {
+    display: grid;
+    grid-template-columns: 1fr minmax(auto, 900px) 1fr;
+    grid-template-areas:
+        "main main main"
+        ".. content .."
+        ".. citations .."
+        ".. footer ..";
+    max-width: unset !important;
+}
+
+/* Header */
+header {
+    grid-area: main;
+    background: white !important;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    max-width: 100vw;
+    z-index: 10;
+    margin-bottom: 2rem;
+}
+
+.dark header {
+    background: #2d3748 !important;
+    border-bottom: 1px solid #4a5568;
+}
+
+/* Footer and citations */
+.citations {
+    grid-area: citations;
+    margin-top: 2.5rem;
+    padding: 0;
+    background-color: #f7fafc;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.dark .citations {
+    color: #e2e8f0;
+    background-color: #2d3748;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.citations-header {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background-color 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dark .citations-header {
+    border-bottom-color: #4a5568;
+}
+
+.citations-header:hover {
+    background-color: #edf2f7;
+}
+
+.dark .citations-header:hover {
+    background-color: #374151;
+}
+
+.citations-header h2, .citations-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.dark .citations-header h2, .dark .citations-header h3 {
+    color: #e2e8f0;
+}
+
+.toggle-icon, .expand-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #4299e1;
+    transition: transform 0.3s ease;
+}
+
+.dark .toggle-icon, .dark .expand-icon {
+    color: #63b3ed;
+}
+
+.citations-content {
+    padding: 0 1.5rem 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.citations-content p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+}
+
+.citations-content a {
+    color: #4299e1;
+    text-decoration: none;
+    font-size: 0.9rem !important;
+    font-weight: normal;
+}
+
+.dark .citations-content a {
+    color: #63b3ed;
+}
+
+.citations-content a:hover {
+    text-decoration: underline;
+}
+
+/* Fix the citations toggling */
+.citations.expanded .toggle-icon, 
+.citations.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.footer {
+    grid-area: footer;
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.dark .footer {
+    color: #cbd5e0;
+    border-top-color: #4a5568;
+}
+
+/* Article content specific dark mode styles */
+.article-content {
+    color: #4a5568;
+    padding: 2rem !important;
+}
+
+.dark .article-content {
+    color: #e2e8f0;
 }
 
 /* Markdown link styling */

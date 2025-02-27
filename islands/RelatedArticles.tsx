@@ -33,8 +33,8 @@ export default function RelatedArticles({relatedArticles: articles, ...params}: 
     return (
         <>
             {articles.slice(from, to).map((article) => {
-                // Format the article path correctly
-                const articlePath = article.path.startsWith('report_') ? article.path : article.path;
+                // Format the article path correctly and encode it for URL safety
+                const articlePath = encodeURIComponent(article.path);
                 
                 return (
                     <div key={article.path} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:translate-y-[-4px]">

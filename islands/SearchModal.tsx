@@ -92,7 +92,7 @@ export default function SearchModal() {
     else if (e.key === "Enter") {
       e.preventDefault();
       if (results && selectedIndex >= 0 && selectedIndex < results.length && results[selectedIndex]) {
-        window.location.href = `/articles/${results[selectedIndex].path}`;
+        navigateToArticle(results[selectedIndex].path);
       }
     }
   };
@@ -107,11 +107,13 @@ export default function SearchModal() {
     }
   }, [selectedIndex, results]);
 
-  if (!isOpen) return null;
-
-  const handleResultClick = (path: string) => {
-    window.location.href = `/articles/${path}`;
+  // Helper function to navigate to an article with proper encoding
+  const navigateToArticle = (path: string) => {
+    const encodedPath = encodeURIComponent(path);
+    window.location.href = `/articles/${encodedPath}`;
   };
+
+  if (!isOpen) return null;
 
   return (
     <div 
@@ -181,7 +183,7 @@ export default function SearchModal() {
                   className={`w-full text-left p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer ${
                     selectedIndex === index ? "bg-gray-100 dark:bg-gray-700" : ""
                   }`}
-                  onClick={() => handleResultClick(result.path)}
+                  onClick={() => navigateToArticle(result.path)}
                   aria-selected={selectedIndex === index}
                 >
                   <div className="font-medium text-gray-900 dark:text-white">{result.title}</div>

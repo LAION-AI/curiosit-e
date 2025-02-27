@@ -2,13 +2,17 @@ import { join } from "https://deno.land/std@0.218.2/path/mod.ts";
 import { Partial } from "$fresh/runtime.ts";
 import { Head } from "$fresh/runtime.ts";
 import Header from "../../components/Header.tsx";
+import RelatedArticles from "../../islands/RelatedArticles.tsx";
+import SearchModal from "../../islands/SearchModal.tsx";
+import type { RouteContext } from "$fresh/server.ts";
 
 // CSS and JS imports for articles
 const cssLink = `<link href="/article.css" rel="stylesheet">`;
-const jsFile = await Deno.readFile("./utils/articles/graph.js");
-const jsContent = new TextDecoder().decode(jsFile);
-const jsScript = `<script>${jsContent}</script>`;
+const graphJsFile = await Deno.readFile("./utils/articles/graph.js");
+const graphJsContent = new TextDecoder().decode(graphJsFile);
+const jsScript = `<script>${graphJsContent}</script>`;
 
+// Path to static directory
 const staticDir = "./static/articles";
 
 // Cache for transformed content to reduce processing overhead
@@ -126,122 +130,132 @@ function processArticleContent(htmlContent: string): string {
         result += parts[i];
     }
     
-    // Make blockquotes collapsible
-    result = result.replace(/<blockquote>([\s\S]*?)<\/blockquote>/g, 
-        '<details class="collapsible-quote"><summary>Quote</summary><blockquote>$1</blockquote></details>');
-    
-    // Add jump to top button
-    result += `
-    <button id="jumpToTopBtn" class="jump-to-top" title="Go to top">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 19V5M5 12l7-7 7 7"/>
-        </svg>
-    </button>
-    <script>
-        // Jump to top button functionality
-        const jumpToTopBtn = document.getElementById('jumpToTopBtn');
-        
-        // Show button when user scrolls down 300px
-        window.onscroll = function() {
-            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                jumpToTopBtn.classList.add('visible');
-            } else {
-                jumpToTopBtn.classList.remove('visible');
-            }
-        };
-        
-        // Scroll to top when button is clicked
-        jumpToTopBtn.addEventListener('click', function() {
-            document.body.scrollTop = 0; // For Safari
-            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-        });
-    </script>
-    `;
-    
     return result;
 }
 
-export default async function ArticlePage(_req: Request, { params }: { params: { path: string } }) {
-    const lang = new URL(_req.url).searchParams.get("lang") || "en";
-    const articleTitle = extractTitle(params.path);
+export default async function ArticlePage(req: Request, ctx: RouteContext) {
+  const { path } = ctx.params;
+  const url = new URL("../dummy.html", import.meta.url);
+
+  try {
+    const articlePath = `articles/${path}`;
+    
+    // Try to find the actual article file
+    const articleFilePath = await findArticleFile(path);
+    
+    if (!articleFilePath) {
+      console.error(`Article file not found: ${path}`);
+      return new Response("Article not found", { status: 404 });
+    }
+    
+    const lang = new URL(req.url).searchParams.get("lang") || "en";
+    const articleTitle = extractTitle(path);
+    
+    // Process article content
+    let content: string;
     
     try {
-        // Find the actual file path
-        const filepath = await findArticleFile(params.path);
+      // Check if file exists and get its last modified time
+      const fileInfo = await Deno.stat(articleFilePath);
+      const fileTimestamp = fileInfo.mtime?.getTime() || Date.now();
+      
+      // Check cache first for better performance
+      const cachedData = contentCache.get(articleFilePath);
+      if (cachedData && cachedData.timestamp >= fileTimestamp) {
+        content = cachedData.content;
+      } else {
+        const file = await Deno.readFile(articleFilePath);
+        const rawContent = new TextDecoder().decode(file);
         
-        if (!filepath) {
-            return new Response("Article not found", { status: 404 });
-        }
-        
-        // Read and process the article content
-        let content: string;
-        
-        // Check if file exists and get its last modified time
-        const fileInfo = await Deno.stat(filepath);
-        const fileTimestamp = fileInfo.mtime?.getTime() || Date.now();
-        
-        // Check cache first for better performance
-        const cachedData = contentCache.get(filepath);
-        if (cachedData && cachedData.timestamp >= fileTimestamp) {
-            content = cachedData.content;
+        if (articleFilePath.endsWith(".html")) {
+          content = processArticleContent(rawContent);
         } else {
-            const file = await Deno.readFile(filepath);
-            const rawContent = new TextDecoder().decode(file);
-            
-            if (filepath.endsWith(".html")) {
-                content = processArticleContent(rawContent);
-            } else {
-                content = rawContent;
-            }
-            
-            // Cache the transformed content with timestamp
-            contentCache.set(filepath, { content, timestamp: fileTimestamp });
+          content = rawContent;
         }
-
-        return (
-            <div className="min-h-screen bg-white dark:bg-gray-900">
-                <Head>
-                    <title>{articleTitle} | Curiosit-e</title>
-                    <meta name="description" content={`Educational article about ${articleTitle}`} />
-                    <link rel="stylesheet" href="/styles.css" />
-                    <link rel="stylesheet" href="/article.css" />
-                </Head>
-                
-                <Header lang={lang} />
-                
-                <main className="container mx-auto px-4 py-6 md:py-8">
-                    <article className="mx-auto max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                        <div className="px-6 pt-6 md:px-8 md:pt-8">
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
-                                {articleTitle}
-                            </h1>
-                        </div>
-                        <Partial name="article-content">
-                            {/* 
-                              * Using dangerouslySetInnerHTML is necessary here as we're rendering 
-                              * pre-generated HTML content from article files. The content is 
-                              * processed server-side and doesn't contain user-generated input.
-                              */}
-                            <div 
-                                dangerouslySetInnerHTML={{__html: content}} 
-                                className="p-6 md:p-8 article-content dark:text-gray-200" 
-                            />
-                        </Partial>
-                    </article>
-                </main>
-                
-                <footer className="bg-gray-100 dark:bg-gray-800 py-6 mt-8">
-                    <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-300">
-                        <p>&copy; {new Date().getFullYear()} Curiosit-e. All rights reserved.</p>
-                    </div>
-                </footer>
-            </div>
-        );
-    } catch (e) {
-        if (e instanceof Deno.errors.NotFound) {
-            return new Response("Article not found", { status: 404 });
+        
+        // Cache the transformed content with timestamp
+        contentCache.set(articleFilePath, { content, timestamp: fileTimestamp });
+      }
+    } catch (fileError) {
+      console.error("Error reading article file:", fileError);
+      
+      // Fall back to fetching via URL if file access fails
+      try {
+        const res = await fetch(new URL(`../../${articlePath}.md`, url));
+        
+        if (!res.ok) {
+          return new Response("Article not found", { status: 404 });
         }
-        console.error("Error serving file:", e);
-        return new Response("Internal server error", { status: 500 });
+        
+        content = await res.text();
+      } catch (fetchError) {
+        console.error("Error fetching article:", fetchError);
+        return new Response("Error fetching article content", { status: 500 });
+      }
     }
+    
+    // Fetch related articles
+    let relatedArticles = [];
+    try {
+      const relatedArticlesRes = await fetch(
+        new URL(`../../${articlePath}.related.json`, url),
+      );
+      
+      if (relatedArticlesRes.ok) {
+        relatedArticles = await relatedArticlesRes.json();
+      } else {
+        console.error("Error fetching related articles:", relatedArticlesRes.statusText);
+      }
+    } catch (relatedError) {
+      console.error("Error fetching related articles:", relatedError);
+      // Continue with empty related articles rather than failing the whole page
+    }
+
+    return (
+      <>
+        <Head>
+          <title>{articleTitle} | Curiosit-e</title>
+          <meta name="description" content={`Educational article about ${articleTitle}`} />
+          <link rel="stylesheet" href="/styles.css" />
+          <link rel="stylesheet" href="/article.css" />
+          <script src="/article-enhancer.js" defer />
+        </Head>
+        <div class="layout">
+          <Header lang={lang} />
+          <SearchModal />
+          <main class="content">
+            <div className="min-h-screen bg-white dark:bg-gray-900">
+              <main className="container mx-auto px-4 py-6 md:py-8">
+                <article className="mx-auto max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                  <div className="px-6 pt-6 md:px-8 md:pt-8">
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
+                      {articleTitle}
+                    </h1>
+                  </div>
+                  <Partial name="article-content">
+                    <div 
+                      dangerouslySetInnerHTML={{__html: content}} 
+                      className="p-6 md:p-8 article-content dark:text-gray-200" 
+                    />
+                  </Partial>
+                </article>
+              </main>
+              <footer className="bg-gray-100 dark:bg-gray-800 py-6 mt-8">
+                <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-300">
+                  <p>&copy; {new Date().getFullYear()} Curiosit-e. All rights reserved.</p>
+                </div>
+              </footer>
+            </div>
+            <div class="related-articles">
+              <h2>Related Articles</h2>
+              <RelatedArticles relatedArticles={relatedArticles} count={3} />
+            </div>
+          </main>
+        </div>
+      </>
+    );
+  } catch (error) {
+    console.error("Unhandled error in ArticlePage:", error);
+    return new Response("Error processing article", { status: 500 });
+  }
 }
