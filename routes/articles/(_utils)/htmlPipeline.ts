@@ -1,14 +1,9 @@
-const cssLink = `<link href="/article.css" rel="stylesheet">`;
-
 export function htmlPipeline(html: string) {
     // Remove inline styles for cleaner output
     const withoutStyles = html.replace(/<style[\s\S]*?<\/style>/g, "");
     
-    // Add CSS and JS
-    const withAssets = withoutStyles.replace("</title>", `</title>${cssLink}`);
-    
     // Remove unnecessary elements
-    const withoutHead = withAssets.replace(/\<head\>.+\<\/head\>/s, "");
+    const withoutHead = withoutStyles.replace(/\<head\>.+\<\/head\>/s, "");
     const withoutH1 = withoutHead.replace(/\<h1\>.+\<\/h1\>/s, "");
     
     // Remove any Google Fonts imports (now in CSS)

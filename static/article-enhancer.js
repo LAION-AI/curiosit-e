@@ -1,25 +1,22 @@
-//@ts-ignore
 /**
  * Article Enhancer Script
  * Handles reading progress, collapsible citations, and jump-to-top functionality
  */
 
-if (typeof document !== 'undefined') {
-  // Initialize all enhancements when DOM is loaded
-  document.addEventListener('DOMContentLoaded', () => {
-      // Reading Progress
-    initReadingProgress();
-    
-    // Citations Toggle
-    initCitationsToggle();
-    
-    // Jump to Top Button
-    initJumpToTopButton();
-    
-    // Audio Player styling
-    initAudioPlayers();
-  });
-}
+// Initialize all enhancements when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Reading Progress
+  initReadingProgress();
+  
+  // Citations Toggle
+  initCitationsToggle();
+  
+  // Jump to Top Button
+  initJumpToTopButton();
+  
+  // Audio Player styling
+  initAudioPlayers();
+});
 
 /**
  * Initialize reading progress indicator
@@ -53,7 +50,7 @@ function initReadingProgress() {
 /**
  * Initialize citations toggle functionality
  */
-export function initCitationsToggle() {
+function initCitationsToggle() {
   if (typeof window === 'undefined' || !document) {
     return;
   }

@@ -2,7 +2,6 @@ import { Partial } from "$fresh/runtime.ts";
 import { Head } from "$fresh/runtime.ts";
 import Header from "../../components/Header.tsx";
 import type { RouteContext } from "$fresh/server.ts";
-import "../../static/article-enhancer.js";
 import { htmlPipeline } from "./(_utils)/htmlPipeline.ts";
 // Define ARTICLES_SERVER_URL here where Deno is available
 const ARTICLES_SERVER_URL = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:8002";
@@ -94,12 +93,10 @@ export default async function ArticlePage(_: Request, ctx: RouteContext) {
                       {articleTitle}
                     </h1>
                   </div>
-                  <Partial name="article-content">
                     <div 
                       dangerouslySetInnerHTML={{__html: content}} 
                       className="p-6 md:p-8 article-content dark:text-gray-200" 
                     />
-                  </Partial>
                 </article>
               </main>
               <footer className="bg-gray-100 dark:bg-gray-800 py-6 mt-8">
@@ -110,6 +107,7 @@ export default async function ArticlePage(_: Request, ctx: RouteContext) {
             </div>
           </main>
         </div>
+        <script src="/article-enhancer.js" defer />
       </>
     );
   } catch (error) {

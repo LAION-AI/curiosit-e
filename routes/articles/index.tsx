@@ -6,7 +6,6 @@ import Header from "../../components/Header.tsx";
 
 // Define ARTICLES_SERVER_URL at the top level
 const ARTICLES_SERVER_URL = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:8002";
-const ARTICLES_STORAGE_SERVER_URL = Deno.env.get("ARTICLES_STORAGE_SERVER_URL") || "http://localhost:8001";
 export type Article = {
 	title: string;
 	public_path: string;
@@ -76,7 +75,7 @@ export default async function Articles(props: PageProps) {
 
 			<main className="container mx-auto px-4 py-8 md:py-12">
 				<div className="max-w-4xl mx-auto mb-10 text-center">
-					<h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white font-serif">
+					<h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white">
 						All Articles
 					</h1>
 					<p className="text-lg text-gray-600 dark:text-gray-300">
