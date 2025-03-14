@@ -13,20 +13,15 @@ export default function LogoHeader({ lang }: { lang: string }) {
             {/* Logo Image */}
             <img
                 src="/logo-curiosit-e.png"
-                width="60"
-                height="60"
+                width="50"
+                height="50"
                 alt="Curiosit-e Logo"
-                className="rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700"
+                className="rounded-md transition-all duration-300"
             />
 
             <div className="flex flex-col">
-                {/* Over Title */}
-                <h2 className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wider uppercase">
-                    {headerContent[safeLanguage].overTitle}
-                </h2>
-
                 {/* Main Title */}
-                <h1 className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 font-bold font-serif">
+                <h1 className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 font-bold">
                     {headerContent[safeLanguage].title}
                 </h1>
             </div>

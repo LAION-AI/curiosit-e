@@ -3,9 +3,9 @@ import DarkModeToggle from "../islands/DarkModeToggle.tsx";
 import HeaderMenu from "../islands/HeaderMenu.tsx";
 import SearchModal from "../islands/SearchModal.tsx";
 
-export default function Header({ lang = "en" }: { lang?: string }) {
+export default function Header({ lang = "en", articlesServerUrl = "http://localhost:8002", articlesStorageServerUrl = "http://localhost:8001" }: { lang?: string; articlesServerUrl?: string; articlesStorageServerUrl?: string }) {
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-md py-3 px-4 md:px-6 sticky top-0 z-50">
+    <header className="dark:bg-gray-800 bg-white py-3 px-4 md:px-6 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         <a href="/" className="flex-shrink-0">
           <LogoHeader lang={lang} />
@@ -28,7 +28,7 @@ export default function Header({ lang = "en" }: { lang?: string }) {
         <HeaderMenu lang={lang} />
         
         {/* Search Modal */}
-        <SearchModal />
+        <SearchModal articlesServerUrl={articlesServerUrl} articlesStorageServerUrl={articlesStorageServerUrl} />
       </div>
     </header>
   );

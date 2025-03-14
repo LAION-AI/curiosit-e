@@ -34,11 +34,12 @@ export default function RelatedArticles({relatedArticles: articles, ...params}: 
         <>
             {articles.slice(from, to).map((article) => {
                 // Format the article path correctly and encode it for URL safety
-                const articlePath = encodeURIComponent(article.path);
-                
+                let articlePath = `${article.path}`;
+                articlePath = articlePath.replace("http://37.27.128.150:8001/", "articles/");
+
                 return (
                     <div key={article.path} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:translate-y-[-4px]">
-                        <a className="block" href={`/articles/${articlePath}`}>
+                        <a className="block" href={articlePath}>
                             <div className="relative overflow-hidden">
                                 <div className={`${params.size === "small" ? "aspect-square" : "aspect-video"} bg-gray-200 dark:bg-gray-700`}>
                                     <img

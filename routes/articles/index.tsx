@@ -1,13 +1,16 @@
 // @ts-ignore: Ignoring type imports warning
 import type { PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/src/runtime/head.ts";
-import { Partial } from "$fresh/runtime.ts";
 import ArticlesList from "../../islands/ArticlesList.tsx";
 import Header from "../../components/Header.tsx";
 
+// Define ARTICLES_SERVER_URL at the top level
+const ARTICLES_SERVER_URL = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:8002";
+const ARTICLES_STORAGE_SERVER_URL = Deno.env.get("ARTICLES_STORAGE_SERVER_URL") || "http://localhost:8001";
 export type Article = {
 	title: string;
-	path: string;
+	public_path: string;
+	base_name: string;
 	img: string;
 };
 
@@ -23,10 +26,9 @@ export const useRelatedArticles = async (title = "Time Management"): Promise<Art
 
 	try {
 		const urlencoded = encodeURIComponent(title.split(" ").pop() ?? "");
-		// Use environment variable with fallback to localhost
-		const articlesServerUrl = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:3003";
+		// Use the consistent ARTICLES_SERVER_URL
 		const res = await fetch(
-			`${articlesServerUrl}/related?title=${urlencoded}`,
+			`${ARTICLES_SERVER_URL}/query?q=${urlencoded}&k=5`,
 		);
 		
 		if (!res.ok) {
@@ -36,12 +38,10 @@ export const useRelatedArticles = async (title = "Time Management"): Promise<Art
 		
 		const data = await res.json();
 
-		const titles = data.map((article: { img: string; path: string }) => {
-			let path = article.path.replace(
-				"/Users/michael/Software/opensource/school-bud-e-frontend/static",
-				"",
-			);
-			let title = article.path.split("/").pop();
+		const titles = data.german.map((article: { img: string; public_path: string; base_name: string }) => {
+			console.log(article);
+			let path = article.public_path;
+			let title = article.base_name.split("/").pop();
 			title = title?.replace(".html", "");
 			title = title?.replace("report_", "");
 			title = title?.replace(/_/g, " ");
@@ -54,7 +54,7 @@ export const useRelatedArticles = async (title = "Time Management"): Promise<Art
 		articlesCache.set(cacheKey, titles);
 		return titles;
 	} catch (error) {
-		console.error("Error fetching related articles:", error);
+		console.error(error);
 		return [];
 	}
 };
@@ -72,7 +72,7 @@ export default async function Articles(props: PageProps) {
 				<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet" />
 			</Head>
 
-			<Header lang={lang} />
+			<Header lang={lang} articlesServerUrl={ARTICLES_SERVER_URL} />
 
 			<main className="container mx-auto px-4 py-8 md:py-12">
 				<div className="max-w-4xl mx-auto mb-10 text-center">

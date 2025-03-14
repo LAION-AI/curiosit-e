@@ -1,19 +1,13 @@
-import { join } from "https://deno.land/std@0.218.2/path/mod.ts";
 import { Partial } from "$fresh/runtime.ts";
 import { Head } from "$fresh/runtime.ts";
 import Header from "../../components/Header.tsx";
-import RelatedArticles from "../../islands/RelatedArticles.tsx";
-import SearchModal from "../../islands/SearchModal.tsx";
 import type { RouteContext } from "$fresh/server.ts";
-
+import "../../static/article-enhancer.js";
+import { htmlPipeline } from "./(_utils)/htmlPipeline.ts";
+// Define ARTICLES_SERVER_URL here where Deno is available
+const ARTICLES_SERVER_URL = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:8002";
+const ARTICLES_STORAGE_SERVER_URL = Deno.env.get("ARTICLES_STORAGE_SERVER_URL") || "http://localhost:8001";
 // CSS and JS imports for articles
-const cssLink = `<link href="/article.css" rel="stylesheet">`;
-const graphJsFile = await Deno.readFile("./utils/articles/graph.js");
-const graphJsContent = new TextDecoder().decode(graphJsFile);
-const jsScript = `<script>${graphJsContent}</script>`;
-
-// Path to static directory
-const staticDir = "./static/articles";
 
 // Cache for transformed content to reduce processing overhead
 const contentCache = new Map<string, { content: string, timestamp: number }>();
@@ -32,156 +26,41 @@ function extractTitle(path: string): string {
 
 // Helper function to find the actual file path
 async function findArticleFile(articlePath: string): Promise<string | null> {
-    // Handle paths with single quotes by replacing them with escaped versions
-    const sanitizedPath = articlePath.replace(/'/g, "\\'");
-    
-    // First try the direct path
-    const directPath = `${join(staticDir, sanitizedPath)}.html`;
-    try {
-        await Deno.stat(directPath);
-        return directPath;
-    } catch (e) {
-        if (!(e instanceof Deno.errors.NotFound)) {
-            console.error("Error checking direct path:", e);
-        }
-    }
-    
-    // If not found, search in subdirectories
-    try {
-        const searchDirs = [];
-        for await (const entry of Deno.readDir(staticDir)) {
-            if (entry.isDirectory && entry.name.startsWith('search_results_')) {
-                searchDirs.push(entry.name);
-            }
-        }
-        
-        // Try each search directory
-        for (const dir of searchDirs) {
-            const searchPath = `${join(staticDir, dir, sanitizedPath)}.html`;
-            try {
-                await Deno.stat(searchPath);
-                return searchPath;
-            } catch (e) {
-                if (!(e instanceof Deno.errors.NotFound)) {
-                    console.error(`Error checking path in ${dir}:`, e);
-                }
-            }
-        }
-        
-        // If still not found, try with unescaped single quotes
-        if (sanitizedPath !== articlePath) {
-            for (const dir of searchDirs) {
-                const searchPath = `${join(staticDir, dir, articlePath)}.html`;
-                try {
-                    await Deno.stat(searchPath);
-                    return searchPath;
-                } catch (e) {
-                    if (!(e instanceof Deno.errors.NotFound)) {
-                        console.error(`Error checking unescaped path in ${dir}:`, e);
-                    }
-                }
-            }
-        }
-    } catch (e) {
-        console.error("Error searching for article:", e);
-    }
-    
+  const url = new URL(`${articlePath}.html`, ARTICLES_STORAGE_SERVER_URL);
+  console.log("url", url);
+  const res = await fetch(url);
+  if (!res.ok) {
     return null;
+  }
+  const content = await res.text();
+  return content;
 }
 
-// Process HTML content for articles
-function processArticleContent(htmlContent: string): string {
-    // Remove inline styles for cleaner output
-    const withoutStyles = htmlContent.replace(/<style[\s\S]*?<\/style>/g, "");
-    
-    // Add CSS and JS
-    const withAssets = withoutStyles.replace("</title>", `</title>${cssLink}${jsScript}`);
-    
-    // Remove unnecessary elements
-    const withoutHead = withAssets.replace(/\<head\>.+\<\/head\>/s, "");
-    const withoutH1 = withoutHead.replace(/\<h1\>.+\<\/h1\>/s, "");
-    
-    // Remove any Google Fonts imports (now in CSS)
-    const processed = withoutH1.replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/g, "");
-    
-    // Process markdown links - convert [text](url) to <a href="url">text</a>
-    // Split the content by HTML tags and only process text nodes
-    let result = '';
-    const parts = processed.split(/(<[^>]*>)/);
-    
-    for (let i = 0; i < parts.length; i++) {
-        // If this is a text node (not inside an HTML tag), process markdown links
-        if (i % 2 === 0) {
-            // Handle markdown links with more complex text content
-            // This regex handles links with text that might contain formatting but not other links
-            parts[i] = parts[i].replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
-                // Ensure URL is properly formatted
-                const formattedUrl = url.trim();
-                // Return the HTML link
-                return `<a href="${formattedUrl}" class="markdown-link">${text}</a>`;
-            });
-            
-            // Convert placeholder quiz text (more than two consecutive underscores) to input fields
-            parts[i] = parts[i].replace(/_{3,}/g, (match) => {
-                const width = Math.min(Math.max(match.length * 8, 60), 200);
-                return `<input type="text" class="quiz-input" style="width: ${width}px; display: inline-block;" />`;
-            });
-        }
-        result += parts[i];
-    }
-    
-    return result;
-}
 
-export default async function ArticlePage(req: Request, ctx: RouteContext) {
+export default async function ArticlePage(_: Request, ctx: RouteContext) {
   const { path } = ctx.params;
-  const url = new URL("../dummy.html", import.meta.url);
 
   try {
-    const articlePath = `articles/${path}`;
     
     // Try to find the actual article file
-    const articleFilePath = await findArticleFile(path);
-    
-    if (!articleFilePath) {
-      console.error(`Article file not found: ${path}`);
+    let content = await findArticleFile(path)
+    if (!content) {
       return new Response("Article not found", { status: 404 });
     }
-    
-    const lang = new URL(req.url).searchParams.get("lang") || "en";
-    const articleTitle = extractTitle(path);
-    
-    // Process article content
-    let content: string;
+    content = htmlPipeline(content);
     
     try {
-      // Check if file exists and get its last modified time
-      const fileInfo = await Deno.stat(articleFilePath);
-      const fileTimestamp = fileInfo.mtime?.getTime() || Date.now();
-      
-      // Check cache first for better performance
-      const cachedData = contentCache.get(articleFilePath);
-      if (cachedData && cachedData.timestamp >= fileTimestamp) {
-        content = cachedData.content;
-      } else {
-        const file = await Deno.readFile(articleFilePath);
-        const rawContent = new TextDecoder().decode(file);
-        
-        if (articleFilePath.endsWith(".html")) {
-          content = processArticleContent(rawContent);
-        } else {
-          content = rawContent;
-        }
-        
         // Cache the transformed content with timestamp
-        contentCache.set(articleFilePath, { content, timestamp: fileTimestamp });
-      }
+        if (content) {
+          contentCache.set(path, { content, timestamp: Date.now() });
+        }
     } catch (fileError) {
       console.error("Error reading article file:", fileError);
       
       // Fall back to fetching via URL if file access fails
       try {
-        const res = await fetch(new URL(`../../${articlePath}.md`, url));
+        const articlePath = `articles/${path}`;
+        const res = await fetch(ARTICLES_SERVER_URL + articlePath);
         
         if (!res.ok) {
           return new Response("Article not found", { status: 404 });
@@ -194,22 +73,7 @@ export default async function ArticlePage(req: Request, ctx: RouteContext) {
       }
     }
     
-    // Fetch related articles
-    let relatedArticles = [];
-    try {
-      const relatedArticlesRes = await fetch(
-        new URL(`../../${articlePath}.related.json`, url),
-      );
-      
-      if (relatedArticlesRes.ok) {
-        relatedArticles = await relatedArticlesRes.json();
-      } else {
-        console.error("Error fetching related articles:", relatedArticlesRes.statusText);
-      }
-    } catch (relatedError) {
-      console.error("Error fetching related articles:", relatedError);
-      // Continue with empty related articles rather than failing the whole page
-    }
+    const articleTitle = extractTitle(path);
 
     return (
       <>
@@ -218,15 +82,13 @@ export default async function ArticlePage(req: Request, ctx: RouteContext) {
           <meta name="description" content={`Educational article about ${articleTitle}`} />
           <link rel="stylesheet" href="/styles.css" />
           <link rel="stylesheet" href="/article.css" />
-          <script src="/article-enhancer.js" defer />
         </Head>
         <div class="layout">
-          <Header lang={lang} />
-          <SearchModal />
+          <Header lang="en" articlesServerUrl={ARTICLES_SERVER_URL} />
           <main class="content">
             <div className="min-h-screen bg-white dark:bg-gray-900">
               <main className="container mx-auto px-4 py-6 md:py-8">
-                <article className="mx-auto max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                <article className="mx-auto max-w-4xl bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                   <div className="px-6 pt-6 md:px-8 md:pt-8">
                     <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
                       {articleTitle}
@@ -245,10 +107,6 @@ export default async function ArticlePage(req: Request, ctx: RouteContext) {
                   <p>&copy; {new Date().getFullYear()} Curiosit-e. All rights reserved.</p>
                 </div>
               </footer>
-            </div>
-            <div class="related-articles">
-              <h2>Related Articles</h2>
-              <RelatedArticles relatedArticles={relatedArticles} count={3} />
             </div>
           </main>
         </div>

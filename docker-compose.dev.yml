@@ -15,24 +15,26 @@ services:
       - ./deno.json:/app/deno.json
     environment:
       - PORT=8000
-      - ARTICLES_SERVER_URL=http://articles-server:8081
+      - ARTICLES_SERVER_URL=http://37.27.128.150:8002/query?q=Freundschaft&k=5
+      - ARTICLES_STORAGE_SERVER_URL=http://37.27.128.150:8001/
       - GO_SERVER_URL=http://articles-server:8081
       - DENO_ENV=development
     restart: unless-stopped
     command: run -A --watch=routes/,islands/,components/,utils/,internalization/ dev.ts
     
-  articles-server:
-    build:
-      context: ./go-cluster-server
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
-    volumes:
-      - ./static/articles:/app/static/articles
-    environment:
-      - STATIC_DIR=/app/static/articles
-      - PORT=8081
-    restart: unless-stopped
+ 
+ # articles-server:
+ #   build:
+ #     context: ./go-cluster-server
+ #     dockerfile: Dockerfile
+ #   ports:
+ #     - "8081:8081"
+ #   volumes:
+ #     - ./static/articles:/app/static/articles
+ #   environment:
+ #     - STATIC_DIR=/app/static/articles
+ #     - PORT=8081
+ #   restart: unless-stopped
 
 volumes:
   article-data: 

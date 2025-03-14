@@ -1,22 +1,25 @@
+//@ts-ignore
 /**
  * Article Enhancer Script
  * Handles reading progress, collapsible citations, and jump-to-top functionality
  */
 
-// Initialize all enhancements when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  // Reading Progress
-  initReadingProgress();
-  
-  // Citations Toggle
-  initCitationsToggle();
-  
-  // Jump to Top Button
-  initJumpToTopButton();
-  
-  // Audio Player styling
-  initAudioPlayers();
-});
+if (typeof document !== 'undefined') {
+  // Initialize all enhancements when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+      // Reading Progress
+    initReadingProgress();
+    
+    // Citations Toggle
+    initCitationsToggle();
+    
+    // Jump to Top Button
+    initJumpToTopButton();
+    
+    // Audio Player styling
+    initAudioPlayers();
+  });
+}
 
 /**
  * Initialize reading progress indicator
@@ -50,9 +53,13 @@ function initReadingProgress() {
 /**
  * Initialize citations toggle functionality
  */
-function initCitationsToggle() {
+export function initCitationsToggle() {
+  if (typeof window === 'undefined' || !document) {
+    return;
+  }
   // Find all citations sections - use the exact structure we know exists
   const citationsDiv = document.querySelector('.citations');
+  console.log('citationsDiv', citationsDiv);
   
   if (!citationsDiv) {
     console.log('No citations found');

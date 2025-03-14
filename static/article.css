@@ -416,6 +416,10 @@ header h2.text-xs {
     line-height: 1.8;
 }
 
+.article-content a.source {
+    font-size: 0.8em;
+}
+
 .dark .article-content p,
 .dark .article-content li,
 .dark .article-content a,

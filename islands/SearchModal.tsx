@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
+
 interface SearchResult {
-  title: string;
-  path: string;
-  snippet?: string;
+  base_name: string;
+  public_path: string;
 }
 
-export default function SearchModal() {
+export default function SearchModal({ articlesServerUrl = "http://localhost:8002", articlesStorageServerUrl = "http://localhost:8001" }: { articlesServerUrl?: string, articlesStorageServerUrl?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -57,10 +57,26 @@ export default function SearchModal() {
     const delayDebounceFn = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+        // Clean the articlesServerUrl to ensure it's just the base URL without query params
+        let baseUrl = articlesServerUrl;
+        
+        // Remove any trailing slash
+        if (baseUrl.endsWith('/')) {
+          baseUrl = baseUrl.slice(0, -1);
+        }
+        
+        // Extract just the base URL without any query parameters
+        baseUrl = baseUrl.split('?')[0];
+        
+        // Remove any trailing /query
+        if (baseUrl.endsWith('/query')) {
+          baseUrl = baseUrl.slice(0, -6);
+        }
+        
+        const response = await fetch(`${baseUrl}/query?q=${encodeURIComponent(searchQuery)}`);
         if (response.ok) {
           const data = await response.json();
-          setResults(data || []);
+          setResults(data.german || []);
           setSelectedIndex(0);
         }
       } catch (error) {
@@ -72,7 +88,7 @@ export default function SearchModal() {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+  }, [searchQuery, articlesServerUrl]);
 
   // Handle keyboard navigation in results
   const handleResultsKeyDown = (e: KeyboardEvent) => {
@@ -92,7 +108,7 @@ export default function SearchModal() {
     else if (e.key === "Enter") {
       e.preventDefault();
       if (results && selectedIndex >= 0 && selectedIndex < results.length && results[selectedIndex]) {
-        navigateToArticle(results[selectedIndex].path);
+        navigateToArticle(results[selectedIndex].public_path);
       }
     }
   };
@@ -109,8 +125,9 @@ export default function SearchModal() {
 
   // Helper function to navigate to an article with proper encoding
   const navigateToArticle = (path: string) => {
-    const encodedPath = encodeURIComponent(path);
-    window.location.href = `/articles/${encodedPath}`;
+    const articlePath = (new URL(path)).pathname.replace(".html", "");
+    const url = new URL(`/articles${articlePath}`, window.location.origin);
+    window.location.href = url.toString();
   };
 
   if (!isOpen) return null;
@@ -177,21 +194,16 @@ export default function SearchModal() {
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {results.map((result, index) => (
                 <button 
-                  key={result.path}
+                  key={result.public_path}
                   data-index={index}
                   type="button"
                   className={`w-full text-left p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer ${
                     selectedIndex === index ? "bg-gray-100 dark:bg-gray-700" : ""
                   }`}
-                  onClick={() => navigateToArticle(result.path)}
+                  onClick={() => navigateToArticle(result.public_path)}
                   aria-selected={selectedIndex === index}
                 >
-                  <div className="font-medium text-gray-900 dark:text-white">{result.title}</div>
-                  {result.snippet && (
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      {result.snippet}
-                    </div>
-                  )}
+                  <div className="font-medium text-gray-900 dark:text-white">{result.base_name}</div>
                 </button>
               ))}
             </div>

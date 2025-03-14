@@ -5,6 +5,10 @@ import { Partial } from "$fresh/runtime.ts";
 import RelatedArticles from "../islands/RelatedArticles.tsx";
 import Header from "../components/Header.tsx";
 
+// Define ARTICLES_SERVER_URL at the top level
+const ARTICLES_SERVER_URL = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:8002";
+const ARTICLES_STORAGE_SERVER_URL = Deno.env.get("ARTICLES_STORAGE_SERVER_URL") || "http://localhost:8001";
+
 type Article = {
 	title: string;
 	path: string;
@@ -23,10 +27,9 @@ const useRelatedArticles = async (title = "Time Management"): Promise<Article[]>
 
 	try {
 		const urlencoded = encodeURIComponent(title.split(" ").pop() ?? "");
-		// Use environment variable with fallback to localhost
-		const articlesServerUrl = Deno.env.get("ARTICLES_SERVER_URL") || "http://localhost:3003";
+		// Use the consistent ARTICLES_SERVER_URL
 		const res = await fetch(
-			`${articlesServerUrl}/related?title=${urlencoded}`,
+			`${ARTICLES_SERVER_URL}/related?title=${urlencoded}`,
 		);
 		
 		if (!res.ok) {
@@ -72,7 +75,7 @@ export default async function Home(props: PageProps) {
 				<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet" />
 			</Head>
 
-			<Header lang={lang} />
+			<Header lang={lang} articlesServerUrl={ARTICLES_SERVER_URL} articlesStorageServerUrl={ARTICLES_STORAGE_SERVER_URL} />
 
 			<main className="container mx-auto px-4 py-8 md:py-12">
 				<div className="max-w-4xl mx-auto mb-10 text-center">
